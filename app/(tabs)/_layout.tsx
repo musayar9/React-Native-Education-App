@@ -11,11 +11,14 @@ type TabIconProps = {
 }
 
 const TabIcon = ({ icon, color, name, focused }:TabIconProps) => {
-  return <View className="items-center justify-center gap-1">
+  return <View className="items-center justify-center gap-2">
   <Image source={icon} resizeMode="contain" tintColor={color}
   className="w-6 h-6"
   />
-  <Text className={`${focused ? "font-psemibold":"font-pregular"} text-xs`}>
+  <Text className={`${focused ? "font-psemibold":"font-pregular"} text-xs ` } 
+  
+  style={{color:color}}
+  >
   {name}
   </Text>
   </View>;
@@ -24,7 +27,18 @@ const TabIcon = ({ icon, color, name, focused }:TabIconProps) => {
 const TabsLayout = () => {
   return (
     <>
-      <Tabs screenOptions={{ tabBarShowLabel: false }}>
+      <Tabs screenOptions={{ tabBarShowLabel: false,
+      tabBarActiveTintColor:"#FFA001",
+      tabBarInactiveTintColor:"#cdcdE0",
+      tabBarStyle:{
+        backgroundColor:'#161622',
+        borderTopWidth:1,
+        borderTopColor:"#232533",
+        height:84
+      }
+      
+      
+      }}>
         <Tabs.Screen
           name="home"
           options={{
