@@ -9,12 +9,12 @@ import { useNavigation } from "@react-navigation/native";
 import { useGlobalContext } from "@/context/GlobalProvider";
 export default function Index() {
   // const router = useRouter();
-const {isLoading, isLoggedIn}:{isLoading:boolean, isLoggedIn:boolean} = useGlobalContext()
-const handlePress = ()=>{
- router.push("/sing-in")
-}
+  const { isLoading, isLoggedIn } = useGlobalContext();
+  const handlePress = () => {
+    router.push("/sing-in");
+  };
 
-if(!isLoading && isLoggedIn) return <Redirect href="/"/>
+  if (!isLoading && isLoggedIn) return <Redirect href="/home" />;
   return (
     <SafeAreaView className="bg-[#161622] h-full">
       <ScrollView contentContainerStyle={{ height: "100%" }}>

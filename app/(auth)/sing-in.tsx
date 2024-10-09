@@ -5,32 +5,33 @@ import { images } from "@/constants";
 import FormField from "@/components/FormField";
 import CustomButton from "@/components/CustomButton";
 import { Link, router } from "expo-router";
-import { signIn } from "@/lib/appwrite";
-
-
-
-
+import { getCurrentUser, signIn } from "@/lib/appwrite";
+import { useGlobalContext } from "@/context/GlobalProvider";
 
 const SignIn = () => {
+  const { user, setUser, setIsLoggedIn } = useGlobalContext();
   const [form, setForm] = useState({
     email: "",
     password: "",
   });
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const submit = async () => {
-    if ( !form.email || !form.password) {
+    if (form.email === "" || form.password === "") {
       Alert.alert("Error", "Please fill in all the fields");
     }
 
     setIsSubmitting(true);
     try {
-       await signIn({
+      await signIn({
         email: form.email,
         password: form.password,
       });
+      const result = await getCurrentUser();
+      setUser(result);
+      setIsLoggedIn(true);
 
       //set it to global state
-
+      Alert.alert("Success", "User signed in successfully");
       router.replace("/home");
     } catch (err) {
       if (err instanceof Error) {
@@ -42,8 +43,6 @@ const SignIn = () => {
       setIsSubmitting(false);
     }
   };
-
-
 
   return (
     <SafeAreaView className="bg-[#161622] h-full">

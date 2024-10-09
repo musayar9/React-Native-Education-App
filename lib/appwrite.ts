@@ -80,6 +80,20 @@ export const createUser = async ({
 };
 
 export const signIn = async ({ email, password }: UserInfo) => {
+ try {
+   // Mevcut oturumu kontrol et
+   const session = await account.getSession("current");
+   if (session) {
+     console.log("Kullanıcı zaten oturum açmış");
+     return;
+   }
+ } catch (error) {
+   if (error?.code !== 401) {
+     // 401: Session not found
+     console.error("Oturum kontrol hatası:", error);
+     return;
+   }
+ }
   try {
     const session = await account.createEmailSession(email, password);
     return session;
