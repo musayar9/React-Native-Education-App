@@ -14,12 +14,14 @@ import Trending from "@/components/Trending";
 import EmptyState from "@/components/EmptyState";
 import { getAllPosts } from "@/lib/appwrite";
 import useAppWrite from "@/lib/useAppWrite";
+import VideoCard from "@/components/VideoCard";
 
 type Posts = {
   $id: string;
   title: string;
   thumbnail: string;
   video: string;
+  creator:{username:string, avatar:string}
 };
 
 const Home = () => {
@@ -31,14 +33,14 @@ const Home = () => {
     await refetch();
     setRefreshing(false);
   };
-  console.log("data", posts);
+  // console.log("data", posts);
   return (
     <SafeAreaView className="bg-[#161622] h-full">
       <FlatList
         data={posts}
         keyExtractor={(item) => item.$id}
         renderItem={({ item }) => (
-          <Text className="text-3xl">{item.title}</Text>
+          <VideoCard video={item}/>
         )}
         ListHeaderComponent={() => (
           <View className="my-6 px-4 space-y-6">
@@ -62,12 +64,12 @@ const Home = () => {
             </View>
             <SearchInput />
 
-            <View className="w-full flex-1 pt-3 pb-8">
+            {/* <View className="w-full flex-1 pt-3 pb-8">
               <Text className="text-gray-100 text-lg font-pregular mb-3">
                 Latest Videos
               </Text>
               <Trending posts={[{ id: 1 }, { id: 2 }, { id: 3 }]} />
-            </View>
+            </View> */}
           </View>
         )}
         ListEmptyComponent={() => (
