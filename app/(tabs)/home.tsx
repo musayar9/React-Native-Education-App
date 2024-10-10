@@ -1,16 +1,52 @@
-import { View, Text, FlatList, Image } from "react-native";
-import React from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  RefreshControl,
+  Alert,
+} from "react-native";
+import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { images } from "@/constants";
 import SearchInput from "@/components/SearchInputs";
 import Trending from "@/components/Trending";
 import EmptyState from "@/components/EmptyState";
+import { getAllPosts } from "@/lib/appwrite";
 const Home = () => {
+  const [refreshing, setRefreshing] = useState(false);
+  const [data, setData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+      const response = await getAllPosts();
+      setData(response)
+      
+      } catch (error) {
+        if (error instanceof Error) {
+          Alert.alert("Error", error.message);
+        } else {
+          Alert.alert("Error", "An unknown error occurred");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  }, []);
+
+console.log("data", data)
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+  };
+
   return (
-    <SafeAreaView className="bg-[#161622]">
+    <SafeAreaView className="bg-[#161622] h-full">
       <FlatList
-        data={[]}
-        // data={[{ id: 1 }, { id: 2 }, { id: 3 }]}
+        data={[{ id: 1 }, { id: 2 }, { id: 3 }]}
         keyExtractor={(item) => item.$id}
         renderItem={({ item }) => <Text className="text-3xl">{item.id}</Text>}
         ListHeaderComponent={() => (
@@ -49,6 +85,9 @@ const Home = () => {
             subtitle={"Be the first one to upload a video"}
           />
         )}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       />
     </SafeAreaView>
   );
