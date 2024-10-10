@@ -6,49 +6,40 @@ import {
   RefreshControl,
   Alert,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { images } from "@/constants";
 import SearchInput from "@/components/SearchInputs";
 import Trending from "@/components/Trending";
 import EmptyState from "@/components/EmptyState";
 import { getAllPosts } from "@/lib/appwrite";
+import useAppWrite from "@/lib/useAppWrite";
+
+type Posts = {
+  $id: string;
+  title: string;
+  thumbnail: string;
+  video: string;
+};
+
 const Home = () => {
+  const { data: posts, refetch } = useAppWrite<Posts[]>(getAllPosts);
   const [refreshing, setRefreshing] = useState(false);
-  const [data, setData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-      const response = await getAllPosts();
-      setData(response)
-      
-      } catch (error) {
-        if (error instanceof Error) {
-          Alert.alert("Error", error.message);
-        } else {
-          Alert.alert("Error", "An unknown error occurred");
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-  }, []);
-
-console.log("data", data)
 
   const onRefresh = async () => {
     setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
   };
-
+  console.log("data", posts);
   return (
     <SafeAreaView className="bg-[#161622] h-full">
       <FlatList
-        data={[{ id: 1 }, { id: 2 }, { id: 3 }]}
+        data={posts}
         keyExtractor={(item) => item.$id}
-        renderItem={({ item }) => <Text className="text-3xl">{item.id}</Text>}
+        renderItem={({ item }) => (
+          <Text className="text-3xl">{item.title}</Text>
+        )}
         ListHeaderComponent={() => (
           <View className="my-6 px-4 space-y-6">
             <View className="justify-between items-start flex-row mb-6">
