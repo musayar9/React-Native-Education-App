@@ -12,20 +12,21 @@ import { images } from "@/constants";
 import SearchInput from "@/components/SearchInputs";
 import Trending from "@/components/Trending";
 import EmptyState from "@/components/EmptyState";
-import { getAllPosts } from "@/lib/appwrite";
+import { getAllPosts, getLatestPosts } from "@/lib/appwrite";
 import useAppWrite from "@/lib/useAppWrite";
 import VideoCard from "@/components/VideoCard";
 
-type Posts = {
+export type Posts = {
   $id: string;
   title: string;
   thumbnail: string;
   video: string;
-  creator:{username:string, avatar:string}
+  creator: { username: string; avatar: string };
 };
 
 const Home = () => {
   const { data: posts, refetch } = useAppWrite<Posts[]>(getAllPosts);
+  const { data: latesPosts } = useAppWrite<Posts[]> (getLatestPosts);
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = async () => {
@@ -39,9 +40,7 @@ const Home = () => {
       <FlatList
         data={posts}
         keyExtractor={(item) => item.$id}
-        renderItem={({ item }) => (
-          <VideoCard video={item}/>
-        )}
+        renderItem={({ item }) => <VideoCard video={item} />}
         ListHeaderComponent={() => (
           <View className="my-6 px-4 space-y-6">
             <View className="justify-between items-start flex-row mb-6">
@@ -64,12 +63,12 @@ const Home = () => {
             </View>
             <SearchInput />
 
-            {/* <View className="w-full flex-1 pt-3 pb-8">
+            <View className="w-full flex-1 pt-3 pb-8">
               <Text className="text-gray-100 text-lg font-pregular mb-3">
                 Latest Videos
               </Text>
-              <Trending posts={[{ id: 1 }, { id: 2 }, { id: 3 }]} />
-            </View> */}
+              <Trending posts={latesPosts ?? []} />
+            </View>
           </View>
         )}
         ListEmptyComponent={() => (
