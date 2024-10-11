@@ -1,3 +1,4 @@
+import { Posts } from "@/app/(tabs)/home";
 import {
   Client,
   Account,
@@ -142,15 +143,24 @@ export const getAllPosts = async () => {
   }
 };
 
-
-
 export const getLatestPosts = async () => {
   try {
-    const posts = await databases.listDocuments(databaseId, videoCollectionId,
-    [Query.orderDesc('$createdAt', Query.limit(7))]
-    
-    );
+    const posts = await databases.listDocuments(databaseId, videoCollectionId, [
+      Query.orderDesc("$createdAt", Query.limit(7)),
+    ]);
     console.log("posts", posts);
+    return posts.documents;
+  } catch (error) {
+    throw new Error(error as string);
+  }
+};
+
+export const searchPosts = async (query: string ) => {
+  try {
+    const posts = await databases.listDocuments(databaseId, videoCollectionId, [
+      Query.search("title", query),
+    ]);
+
     return posts.documents;
   } catch (error) {
     throw new Error(error as string);
