@@ -4,23 +4,18 @@ import { icons } from "@/constants";
 import { ResizeMode, Video } from "expo-av";
 
 type VideoCardProps = {
-  video: {
-    title: string;
-    thumbnail: string;
-    video: string;
-    creator: {
-      username: string;
-      avatar: string;
-    };
-  };
+  title: string;
+  thumbnail: string;
+  video: string;
+  creator: string;
+  avatar: string;
 };
 const VideoCard = ({
-  video: {
-    title,
-    thumbnail,
-    video,
-    creator: { username, avatar },
-  },
+  title,
+  thumbnail,
+  video,
+  creator,
+  avatar,
 }: VideoCardProps) => {
   const [play, setPlay] = useState(false);
   return (
@@ -50,7 +45,7 @@ const VideoCard = ({
               className="text-gray-100 font-pregular text-xs"
               numberOfLines={1}
             >
-              {username}
+              {creator || "Un known user"}
             </Text>
           </View>
         </View>

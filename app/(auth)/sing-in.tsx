@@ -22,10 +22,7 @@ const SignIn = () => {
 
     setIsSubmitting(true);
     try {
-      await signIn({
-        email: form.email,
-        password: form.password,
-      });
+      await signIn(form.email, form.password);
       const result = await getCurrentUser();
       setUser(result);
       setIsLoggedIn(true);

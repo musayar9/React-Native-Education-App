@@ -39,16 +39,24 @@ const Search = () => {
 
   const { data: posts, refetch } = useAppWrite<Posts[]>(fetchPosts);
 
-  // console.log("data", posts);
+
   return (
     <SafeAreaView className="bg-[#161622] h-full">
       <FlatList
         data={posts}
         keyExtractor={(item) => item.$id}
-        renderItem={({ item }) => <VideoCard video={item} />}
+        renderItem={({ item }) => (
+          <VideoCard
+            title={item.title}
+            thumbnail={item.thumbnail}
+            video={item.video}
+            creator={item.creator.username}
+            avatar={item.creator.avatar}
+          />
+        )}
         ListHeaderComponent={() => (
           <View className="my-6 px-4 space-y-6">
-            <View className="justify-between items-start flex-row mb-6">
+  
               <View>
                 <Text className="font-pmedium text-sm text-gray-100">
                   Search Results
@@ -56,15 +64,19 @@ const Search = () => {
                 <Text className="text-2xl font-psemibold text-white">
                   {query}
                 </Text>
-                <SearchInput initialQuery={Array.isArray(query) ? query[0] : query} />
+                <View className="mt-6 mb-8">
+                  <SearchInput
+                    initialQuery={Array.isArray(query) ? query[0] : query}
+                  />
+                </View>
               </View>
-            </View>
+          
           </View>
         )}
         ListEmptyComponent={() => (
           <EmptyState
             title={"No Videos Found"}
-            subtitle={"Be the first one to upload a video"}
+            subtitle={"No videos found for this search query"}
           />
         )}
       />

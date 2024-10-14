@@ -6,6 +6,7 @@ import {
   Databases,
   ID,
   Query,
+  Storage,
 } from "react-native-appwrite";
 
 export const config = {
@@ -39,23 +40,12 @@ client
 const account = new Account(client);
 const avatars = new Avatars(client);
 const databases = new Databases(client);
-
-type Username = {
-  username: string;
-};
-
-type UserInfo = {
-  email: string;
-  password: string;
-};
-
-type UserDetails = UserInfo & Username;
-
-export const createUser = async ({
-  username,
-  email,
-  password,
-}: UserDetails) => {
+const storage = new Storage(client);
+export const createUser = async (
+  username: string,
+  email: string,
+  password: string
+) => {
   try {
     const response = await account.create(
       ID.unique(),
@@ -67,12 +57,11 @@ export const createUser = async ({
 
     const avatarUrl = avatars.getInitials(username);
 
-    console.log(response, "response");
-    await signIn({ email, password });
+    await signIn(email, password);
 
     const newUser = await databases.createDocument(
-      config.databaseId,
-      config.userCollectionId,
+      databaseId,
+      userCollectionId,
       ID.unique(),
       {
         accountId: response.$id,
@@ -84,27 +73,11 @@ export const createUser = async ({
 
     return newUser;
   } catch (error) {
-    console.error(error);
-
     throw new Error(error as string);
   }
 };
 
-export const signIn = async ({ email, password }: UserInfo) => {
-  try {
-    // Mevcut oturumu kontrol et
-    const session = await account.getSession("current");
-    if (session) {
-      console.log("Kullanıcı zaten oturum açmış");
-      return;
-    }
-  } catch (error) {
-    if (error?.code !== 401) {
-      // 401: Session not found
-      console.error("Oturum kontrol hatası:", error);
-      return;
-    }
-  }
+export const signIn = async (email: string, password: string) => {
   try {
     const session = await account.createEmailSession(email, password);
     return session;
@@ -112,16 +85,23 @@ export const signIn = async ({ email, password }: UserInfo) => {
     throw new Error(error as string);
   }
 };
-
-export const getCurrentUser = async () => {
+export async function getAccount() {
   try {
     const currentAccount = await account.get();
 
-    if (!currentAccount) throw Error;
+    return currentAccount;
+  } catch (error) {
+    throw new Error(error as string);
+  }
+}
 
+export const getCurrentUser = async () => {
+  try {
+    const currentAccount = await getAccount();
+    if (!currentAccount) throw Error;
     const currentUser = await databases.listDocuments(
-      config.databaseId,
-      config.userCollectionId,
+      databaseId,
+      userCollectionId,
       [Query.equal("accountId", currentAccount.$id)]
     );
 
@@ -135,8 +115,10 @@ export const getCurrentUser = async () => {
 
 export const getAllPosts = async () => {
   try {
-    const posts = await databases.listDocuments(databaseId, videoCollectionId);
-    console.log("posts", posts);
+    const posts = await databases.listDocuments(databaseId, videoCollectionId, [
+      Query.orderDesc("$createdAt"),
+    ]);
+
     return posts.documents;
   } catch (error) {
     throw new Error(error as string);
@@ -148,20 +130,131 @@ export const getLatestPosts = async () => {
     const posts = await databases.listDocuments(databaseId, videoCollectionId, [
       Query.orderDesc("$createdAt", Query.limit(7)),
     ]);
-    console.log("posts", posts);
+
     return posts.documents;
   } catch (error) {
     throw new Error(error as string);
   }
 };
 
-export const searchPosts = async (query: string ) => {
+export const searchPosts = async (query: string) => {
   try {
     const posts = await databases.listDocuments(databaseId, videoCollectionId, [
       Query.search("title", query),
     ]);
 
     return posts.documents;
+  } catch (error) {
+    throw new Error(error as string);
+  }
+};
+
+export const getUserPosts = async (userId: string | undefined) => {
+  try {
+    const posts = await databases.listDocuments(databaseId, videoCollectionId, [
+      Query.equal("creator", userId),
+    ]);
+
+    return posts.documents;
+  } catch (error) {
+    throw new Error(error as string);
+  }
+};
+
+export async function signOut() {
+  try {
+    const session = await account.deleteSession("current");
+
+    return session;
+  } catch (error) {
+    throw new Error(error as string);
+  }
+}
+
+type FileStatus = {
+  fileName: string;
+  mimeType: string;
+  fileSize: string;
+  uri: string;
+};
+export const uploadFile = async (file: FileStatus, type: string) => {
+  if (!file) return;
+
+  const asset = {
+    name: file.fileName,
+    type: file.mimeType,
+    size: file.fileSize,
+    uri: file.uri,
+  };
+
+  try {
+    const uploadedFile = await storage.createFile(
+      storageId,
+      ID.unique(),
+      asset
+    );
+
+    const fileUrl = await getFilePreview(uploadedFile.$id, type);
+    return fileUrl;
+  } catch (error) {
+    throw new Error(error as string);
+  }
+};
+
+type VideoPost = {
+  title: string;
+  thumbnail: FileStatus;
+  video: FileStatus;
+  prompt: string;
+  userId: string | undefined;
+};
+
+export const creativeVideoPost = async (form: VideoPost) => {
+  console.log("form, ", form);
+  try {
+    const [thumbnailUrl, videoUrl] = await Promise.all([
+      uploadFile(form.thumbnail, "image"),
+      uploadFile(form.video, "video"),
+    ]);
+
+    const newPost = await databases.createDocument(
+      databaseId,
+      videoCollectionId,
+      ID.unique(),
+      {
+        title: form.title,
+        thumbnail: thumbnailUrl,
+        video: videoUrl,
+        prompt: form.prompt,
+        creator: form.userId,
+      }
+    );
+    return newPost;
+  } catch (error) {
+    throw new Error(error as string);
+  }
+};
+
+export const getFilePreview = async (fileId: string, type: string) => {
+  let fileUrl;
+
+  try {
+    if (type === "video") {
+      fileUrl = storage.getFileView(storageId, fileId);
+    } else if (type === "image") {
+      fileUrl = storage.getFilePreview(
+        storageId,
+        fileId,
+        2000,
+        2000,
+        "top",
+        100
+      );
+    } else {
+      throw new Error("Invalid File Type");
+    }
+    if (!fileUrl) throw Error;
+    return fileUrl;
   } catch (error) {
     throw new Error(error as string);
   }

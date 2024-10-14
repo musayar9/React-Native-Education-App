@@ -1,44 +1,50 @@
 import { getCurrentUser } from "@/lib/appwrite";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
+
+type User ={
+$id:string | undefined,
+username:string,
+avatar:string,
+}
 const initialState = {
   isLoggedIn: false,
   setIsLoggedIn: (value: boolean) => {},
-  user: null,
+  user: null as User | null,
   setUser: (value: any) => {},
   isLoading: true,
 };
+
+
 const GlobalContext = createContext(initialState);
 
 export const useGlobalContext = () => useContext(GlobalContext);
 
 const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    if (  isLoggedIn) {
-      getCurrentUser()
-        .then((res) => {
-          if (res) {
-            setIsLoggedIn(true);
-            setUser(res);
-          } else {
-            setIsLoggedIn(false);
-            setUser(null);
-          }
-        })
-        .catch((error) => {
-          console.error("Error fetching current user:", error);
+    getCurrentUser()
+      .then((res) => {
+        if (res) {
+          setIsLoggedIn(true);
+          setUser(res);
+        } else {
           setIsLoggedIn(false);
           setUser(null);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    }
-  }, [ isLoggedIn]);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching current user:", error);
+        setIsLoggedIn(false);
+        setUser(null);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, []);
   return (
     <GlobalContext.Provider
       value={{

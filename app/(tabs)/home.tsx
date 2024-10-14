@@ -15,6 +15,7 @@ import EmptyState from "@/components/EmptyState";
 import { getAllPosts, getLatestPosts } from "@/lib/appwrite";
 import useAppWrite from "@/lib/useAppWrite";
 import VideoCard from "@/components/VideoCard";
+import { useGlobalContext } from "@/context/GlobalProvider";
 
 export type Posts = {
   $id: string;
@@ -25,8 +26,9 @@ export type Posts = {
 };
 
 const Home = () => {
+const {user} = useGlobalContext()
   const { data: posts, refetch } = useAppWrite<Posts[]>(getAllPosts);
-  const { data: latesPosts } = useAppWrite<Posts[]> (getLatestPosts);
+  const { data: latesPosts } = useAppWrite<Posts[]>(getLatestPosts);
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = async () => {
@@ -34,22 +36,30 @@ const Home = () => {
     await refetch();
     setRefreshing(false);
   };
-  // console.log("data", posts);
+
   return (
     <SafeAreaView className="bg-[#161622] h-full">
       <FlatList
         data={posts}
         keyExtractor={(item) => item.$id}
-        renderItem={({ item }) => <VideoCard video={item} />}
+        renderItem={({ item }) => (
+          <VideoCard
+            title={item.title}
+            thumbnail={item.thumbnail}
+            video={item.video}
+            creator={item.creator?.username}
+            avatar={item.creator?.avatar}
+          />
+        )}
         ListHeaderComponent={() => (
           <View className="my-6 px-4 space-y-6">
             <View className="justify-between items-start flex-row mb-6">
               <View>
                 <Text className="font-pmedium text-sm text-gray-100">
-                  Welcome Back
+                  Welcome Back,
                 </Text>
-                <Text className="text-2xl font-psemibold text-white">
-                  JSMastery
+                <Text className="text-2xl font-psemibold text-white capitalize">
+                  {user?.username}
                 </Text>
               </View>
 

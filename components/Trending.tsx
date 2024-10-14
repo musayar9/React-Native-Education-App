@@ -36,7 +36,7 @@ const TrendingItem = ({
   item: Posts;
 }) => {
   const [play, setPlay] = useState(false);
-  console.log("actvie", activeItem);
+
   return (
     <Animatable.View
       className="mr-5"
